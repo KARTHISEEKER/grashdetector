@@ -101,9 +101,15 @@ def calculate_cosine_similarity(emb1, emb2):
     if emb1 is None or emb2 is None:
         return 0.0
     
+    # Convert database arrays to numpy arrays
     a = np.array(emb1, dtype=np.float64)
     b = np.array(emb2, dtype=np.float64)
     
+    # --- FIX: Check if dimensions match ---
+    if a.shape != b.shape:
+        return 0.0  # Skip if they don't match (e.g. old DB records)
+        
+    # Calculate cosine similarity
     dot_product = np.dot(a, b)
     norm_a = np.linalg.norm(a)
     norm_b = np.linalg.norm(b)
@@ -167,9 +173,10 @@ def find_similar_images(embedding, threshold=0.85):
         results = []
         
         for row in all_rows:
-            db_emb = row[5]
+            db_emb = row[5] # full_image_embedding is at index 5
             if db_emb:
                 similarity = calculate_cosine_similarity(embedding, db_emb)
+                
                 if similarity >= threshold:
                     db_row = (row[0], row[1], row[2], row[3], row[4], row[5])
                     results.append((db_row, similarity))
